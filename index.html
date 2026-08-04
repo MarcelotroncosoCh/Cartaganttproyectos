@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Carta Gantt Gerencia de Proyectos</title>
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <style>
+    :root{--bg:#e7f0f8;--surface:#f9fcff;--surface2:#dbe8f2;--ink:#0b2538;--muted:#526f84;--line:#b8ccdb;--navy:#0a3150;--blue:#2875a5;--orange:#d26435;--gold:#d1a33a;--green:#397164;--danger:#a83d2f;--shadow:0 14px 38px rgba(8,45,73,.12);--label:280px;--month:42px}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif} button,input,select{font:inherit;color:inherit} button{cursor:pointer}
+    .shell{max-width:1680px;margin:auto;padding:24px clamp(14px,2vw,32px) 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 0 22px;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:13px}.mark{width:42px;height:42px;border-radius:12px;background:var(--navy);position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}.mark:before,.mark:after{content:"";position:absolute;left:10px;right:10px;height:5px;border-radius:4px;background:#fff}.mark:before{top:12px;box-shadow:0 9px 0 var(--gold)}.brand b{font-size:17px;display:block}.brand span,.status{color:var(--muted);font-size:12px}.status{display:flex;gap:8px;align-items:center}.status i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+    .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:28px;align-items:end;padding:48px 0 32px}.eyebrow{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--orange);text-transform:uppercase}.hero h1{font-size:clamp(34px,5vw,66px);line-height:.98;letter-spacing:-.045em;margin:10px 0 15px;max-width:850px}.hero p{font-size:16px;color:var(--muted);max-width:720px;margin:0}.hero-note{border-left:3px solid var(--gold);padding:4px 0 4px 16px;color:var(--muted);font-size:13px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 0 rgba(255,255,255,.75)}.drop{padding:32px;border:2px dashed #82a4bb;text-align:center;transition:.2s;outline:none}.drop:hover,.drop.drag,.drop:focus{border-color:var(--blue);background:#f2f8fd}.dropIcon{font-size:30px;width:58px;height:58px;line-height:55px;margin:0 auto 12px;border-radius:16px;background:var(--surface2)}.drop h2{font-size:18px;margin:0 0 5px}.drop p{margin:0 0 18px;color:var(--muted)}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 13px;font-weight:650;transition:.15s}.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(18,38,50,.09)}.btn.primary{background:var(--navy);border-color:var(--navy);color:white}.btn.ghost{background:transparent}.btn.warn{color:var(--danger)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.hidden{display:none!important}
+    .setup{padding:20px;margin-top:18px}.setupHead,.toolbar,.panelHead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.setup h2,.panelHead h2{font-size:17px;margin:0}.sub{color:var(--muted);font-size:12px}.formgrid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;margin-top:17px}.field label{display:block;font-size:11px;font-weight:750;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.field select,.field input{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:9px}.mapping{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;margin:16px 0;padding-top:16px;border-top:1px solid var(--line)}.setupActions{display:flex;justify-content:flex-end;gap:8px}
+    .workspace{margin-top:22px}.kpis{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin:15px 0}.kpi{padding:15px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}.kpi b{font:750 25px/1 ui-monospace,Consolas,monospace;display:block;margin-bottom:7px}.kpi span{color:var(--muted);font-size:11px}.toolbar{padding:12px 14px;margin-bottom:12px}.toolgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.search{min-width:230px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff}.toolbar select{border:1px solid var(--line);border-radius:9px;padding:9px;background:#fff}.check{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+    .panel{padding:0;overflow:hidden}.panelHead{padding:15px 17px;border-bottom:1px solid var(--line)}.legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:11px}.sw,.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}.dot{transform:rotate(45deg)}
+    .ganttScroll{overflow:auto;max-height:67vh;background:#f9fcff}.gantt{display:grid;position:relative;min-width:max-content}.label,.month,.cell{min-height:44px;border-bottom:1px solid #dce8f0}.label{position:sticky;left:0;z-index:4;background:#f9fcff;padding:7px 12px;border-right:2px solid var(--navy);width:var(--label);overflow:hidden}.label.head{z-index:8;top:0;background:var(--navy);color:white;display:flex;align-items:center}.label b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.month{position:sticky;top:0;z-index:6;background:var(--navy);color:#dbe9f2;text-align:center;padding:7px 1px;font:10px/1.1 ui-monospace,Consolas,monospace;border-left:1px solid rgba(255,255,255,.08)}.month.year{border-left:2px solid var(--gold)}.month strong{display:block;color:#fff;margin-top:2px}.cell{border-left:1px solid #e3edf4;position:relative}.cell.year{border-left:2px solid #a9c1d2}.cell:hover{background:#edf6fc}.bar{position:absolute;height:14px;border-radius:5px 2px 2px 5px;opacity:.92;z-index:2;pointer-events:none}.bar.ds49{background:var(--blue)}.bar.ds19{background:#526f9e}.bar.inm{background:var(--green)}.edge{position:absolute;width:2px;height:25px;background:var(--navy);z-index:3;pointer-events:none}.startHandle,.rmoHandle{position:absolute;width:14px;height:31px;border:0;background:transparent;transform:translateX(-7px);z-index:6;padding:0;cursor:ew-resize;touch-action:none}.startHandle:before,.rmoHandle:before{content:"";position:absolute;left:6px;top:4px;width:2px;height:25px;background:var(--navy)}.startHandle:after,.rmoHandle:after{content:"";position:absolute;left:3px;top:1px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--navy)}.rmoHandle:before{background:var(--orange)}.rmoHandle:after{border-color:var(--orange);border-radius:2px}.startHandle:hover:after,.startHandle.active:after,.rmoHandle:hover:after,.rmoHandle.active:after{background:var(--gold);box-shadow:0 0 0 3px rgba(40,117,165,.2)}
+    .milestone{position:absolute;width:15px;height:15px;border:2px solid white;border-radius:4px;transform:translateX(-50%) rotate(45deg);z-index:5;box-shadow:0 0 0 1px rgba(0,0,0,.2);touch-action:none}.milestone.cpi{background:var(--blue)}.milestone.pat{background:var(--gold)}.milestone.rap{background:var(--orange)}.milestone.other{background:#82949e;cursor:default}.milestone.active{outline:2px solid var(--navy);outline-offset:3px}.nudge{position:absolute;z-index:7;display:flex;gap:2px;transform:translateX(-50%)}.nudge button{width:24px;height:22px;border:1px solid var(--navy);background:white;border-radius:5px;padding:0;font-weight:bold}.nudge button:hover{background:var(--navy);color:white}
+    .empty{padding:36px;text-align:center;color:var(--muted)}.tableWrap{overflow:auto;max-height:420px}.detail{width:100%;border-collapse:collapse;font-size:12px}.detail th{position:sticky;top:0;background:var(--surface2);z-index:2;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em}.detail th,.detail td{padding:9px 11px;border-bottom:1px solid #dce8f0;white-space:nowrap}.durationInput{width:68px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;background:#fff;font-weight:700}.durationInput:focus{outline:2px solid rgba(40,117,165,.25);border-color:var(--blue)}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font:700 10px ui-monospace,Consolas,monospace}.badge.ok{background:#dfeae1;color:var(--green)}.badge.changed{background:#f5dfd5;color:var(--danger)}
+    .toast{position:fixed;right:20px;bottom:20px;max-width:380px;padding:12px 15px;background:var(--navy);color:white;border-radius:10px;box-shadow:var(--shadow);z-index:30}.modal{position:fixed;inset:0;background:rgba(13,27,35,.55);z-index:25;display:grid;place-items:center;padding:18px}.modalBox{width:min(620px,100%);max-height:85vh;overflow:auto;padding:22px}.modalBox h2{margin:0 0 8px}.projectForm{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}.projectForm .wide{grid-column:1/-1}.formError{grid-column:1/-1;color:var(--danger);font-size:12px;min-height:18px}.issues{margin:14px 0;padding-left:20px;color:var(--muted)}.footer{display:flex;justify-content:space-between;gap:15px;margin-top:18px;color:var(--muted);font-size:11px}
+    @media(max-width:900px){.hero{grid-template-columns:1fr}.hero-note{display:none}.formgrid,.mapping{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}:root{--label:220px}}@media(max-width:560px){.shell{padding-inline:10px}.top .status{display:none}.hero{padding-top:30px}.formgrid,.mapping,.projectForm{grid-template-columns:1fr}.projectForm .wide{grid-column:auto}.kpis{grid-template-columns:1fr 1fr}.search{min-width:100%;width:100%}:root{--label:190px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="top"><div class="brand"><div class="mark" aria-hidden="true"></div><div><b>Malpo · Gerencia de Proyectos</b><span>Planificación y simulación de cartera</span></div></div><div class="status"><i></i> Funciona localmente · Sin conexión</div></header>
+  <section class="hero"><div><div class="eyebrow">Planificación de cartera</div><h1>Carta Gantt Gerencia de Proyectos</h1><p>Carga tu planificación y ajusta hitos, inicio, duración o término de obra para observar inmediatamente el efecto sobre toda la cartera.</p></div><div class="hero-note">Tus archivos no salen del equipo. La simulación conserva el original y puedes exportar una copia reprogramada.</div></section>
+
+  <section id="drop" class="card drop" tabindex="0" role="button" aria-label="Cargar archivo Excel o CSV">
+    <div class="dropIcon">↥</div><h2>Carga tu banco de proyectos</h2><p>Arrastra un Excel o CSV aquí, o selecciónalo desde el equipo.</p><button class="btn primary" id="pick">Seleccionar archivo</button><input id="file" class="hidden" type="file" accept=".xlsx,.xls,.csv">
+  </section>
+
+  <section id="setup" class="card setup hidden">
+    <div class="setupHead"><div><h2>Revisar estructura detectada</h2><div class="sub" id="fileInfo"></div></div><button class="btn ghost" id="replace">Cambiar archivo</button></div>
+    <div class="formgrid"><div class="field"><label>Hoja</label><select id="sheet"></select></div><div class="field"><label>Formato</label><select id="format"><option value="auto">Detectar automáticamente</option><option value="timeline">Matriz cronológica</option><option value="table">Tabla con fechas</option></select></div><div class="field"><label>Fila de encabezados</label><input id="headerRow" type="number" min="1" value="1"></div><div class="field"><label>Fila de meses</label><input id="monthRow" type="number" min="1" value="3"></div></div>
+    <div class="mapping" id="mapping"></div>
+    <div class="setupActions"><button class="btn" id="redetect">Volver a detectar</button><button class="btn primary" id="build">Construir carta Gantt</button></div>
+  </section>
+
+  <section id="workspace" class="workspace hidden">
+    <div class="setupHead"><div><div class="eyebrow">Vista activa</div><h2 id="viewTitle" style="margin:4px 0 0">Carta Gantt Gerencia de Proyectos</h2></div><div class="toolgroup"><button class="btn primary" id="addProject">＋ Nuevo proyecto</button><button class="btn" id="configure">Configurar datos</button><button class="btn" id="exportCsv">Exportar CSV</button><button class="btn" id="exportXlsx">Exportar Excel</button><button class="btn" id="exportPdf">Exportar PDF</button></div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card toolbar"><div class="toolgroup"><input id="search" class="search" placeholder="Buscar proyecto o comuna…" aria-label="Buscar"><select id="typeFilter"><option value="">Todos los tipos</option></select><label class="check"><input id="changedOnly" type="checkbox"> Solo reprogramados</label></div><div class="toolgroup"><label class="check"><input id="cascade" type="checkbox" checked> Mover hitos posteriores</label><button class="btn" id="zoomOut" title="Alejar">−</button><button class="btn" id="zoomIn" title="Acercar">＋</button><button class="btn warn" id="reset">Restaurar fechas</button></div></div>
+    <section class="card panel"><div class="panelHead"><div><h2>Cronograma</h2><div class="sub" id="visibleCount"></div></div><div class="legend"><span><i class="sw" style="background:var(--blue)"></i>DS-49</span><span><i class="sw" style="background:#526f9e"></i>DS-19</span><span><i class="sw" style="background:var(--green)"></i>Inmobiliario / otro</span><span><i class="dot" style="background:var(--blue)"></i>CPI</span><span><i class="dot" style="background:var(--gold)"></i>PAT</span><span><i class="dot" style="background:var(--orange)"></i>RAP</span><span>● Inicio arrastrable</span><span>■ RMO arrastrable</span></div></div><div id="gantt" class="ganttScroll"></div></section>
+    <section class="card panel" style="margin-top:14px"><div class="panelHead"><div><h2>Detalle de fechas</h2><div class="sub">Resultado actual de la simulación</div></div></div><div id="details" class="tableWrap"></div></section>
+  </section>
+  <footer class="footer"><span>Procesamiento 100% local. El archivo de origen nunca se modifica.</span><span>Carta Gantt Gerencia de Proyectos</span></footer>
+</main>
+<div id="toast" class="toast hidden" role="status"></div>
+<div id="projectModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle"><div class="card modalBox"><h2 id="projectModalTitle">Agregar nuevo proyecto</h2><p class="sub">Completa los antecedentes básicos. Puedes ajustar hitos y fechas después desde la Carta Gantt.</p><form id="projectForm" class="projectForm"><div class="field wide"><label>Nombre del proyecto *</label><input id="newName" required maxlength="140" placeholder="Ej. Parque Los Robles"></div><div class="field"><label>Comuna *</label><input id="newCommune" required maxlength="80" placeholder="Ej. Talca"></div><div class="field"><label>Cantidad de viviendas *</label><input id="newHomes" type="number" required min="0" step="1" value="0"></div><div class="field"><label>Tipo *</label><select id="newType" required><option>DS-49</option><option>DS-19</option><option>Inmobiliario</option><option>Otro</option></select></div><div class="field"><label>Serie de numeración *</label><select id="newNumbering" required><option value="integer">Números enteros (1, 2, 3…)</option><option value="roman">Números romanos (I, II, III…)</option></select></div><div class="field"><label>N° que se asignará</label><input id="newNumberPreview" readonly aria-label="Número que se asignará"></div><div class="field"><label>Duración en meses *</label><input id="newDuration" type="number" required min="1" max="240" value="12"></div><div class="field"><label>Fecha de inicio *</label><input id="newStart" type="month" required></div><div class="field"><label>Fecha de término *</label><input id="newEnd" type="month" required></div><div id="projectError" class="formError" role="alert"></div><div class="setupActions wide"><button type="button" class="btn" id="cancelProject">Cancelar</button><button type="submit" class="btn primary">Agregar a la carta</button></div></form></div></div>
+<div id="issuesModal" class="modal hidden"><div class="card modalBox"><h2>Revisión de datos</h2><p class="sub">La carta se construyó, pero encontramos observaciones que conviene revisar.</p><ul id="issues" class="issues"></ul><div class="setupActions"><button class="btn primary" id="closeIssues">Continuar</button></div></div></div>
+
+<script>
+(() => {
+  'use strict';
+  const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const monthMap={ene:0,jan:0,feb:1,mar:2,abr:3,apr:3,may:4,mai:4,jun:5,jul:6,ago:7,aug:7,sep:8,set:8,oct:9,nov:10,dic:11,dec:11};
+  const aliases={name:['proyecto','nombre proyecto','nombre','obra'],number:['n','n°','numero','nro','id'],commune:['comuna','ciudad','ubicacion'],homes:['viviendas','viv','n viviendas','cantidad viviendas'],type:['tipo','programa','linea','tipologia'],start:['inicio','inicio obra','inicio de obra','fecha inicio'],duration:['duracion','duración','plazo','meses','duracion meses'],cpi:['cpi'],pat:['pat'],rap:['rap'],rmo:['rmo','cierre','termino','término']};
+  const $=s=>document.querySelector(s); let workbook=null, fileName='', detected=null, projects=[], originals=[], selected=null, monthWidth=42;
+  const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const cloneDate=d=>d?new Date(d.getFullYear(),d.getMonth(),1):null;
+  const addMonths=(d,n)=>new Date(d.getFullYear(),d.getMonth()+n,1);
+  const diffMonths=(a,b)=>(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();
+  const fmt=d=>d?`${MONTHS[d.getMonth()]}.${String(d.getFullYear()).slice(-2)}`:'—';
+  const iso=d=>d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`:'';
+  function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('hidden'),3200)}
+  function toDate(v){if(v instanceof Date&&!isNaN(v))return cloneDate(v);if(typeof v==='number'&&v>20000&&window.XLSX){const o=XLSX.SSF.parse_date_code(v);return o?new Date(o.y,o.m-1,1):null}if(!v)return null;const s=String(v).trim(),isoDate=s.match(/^(20\d{2})-(0?[1-9]|1[0-2])(?:-\d{1,2})?(?:T.*)?$/);if(isoDate)return new Date(+isoDate[1],+isoDate[2]-1,1);const clean=norm(s);const my=clean.match(/(ene(?:ro)?|feb(?:rero)?|mar(?:zo)?|abr(?:il)?|may(?:o)?|jun(?:io)?|jul(?:io)?|ago(?:sto)?|sep(?:tiembre)?|set(?:iembre)?|oct(?:ubre)?|nov(?:iembre)?|dic(?:iembre)?)[ ]+(20\d{2}|\d{2})/i);if(my){const m=monthMap[my[1].slice(0,3)];let y=+my[2];if(y<100)y+=2000;return m===undefined?null:new Date(y,m,1)}const numeric=s.match(/(?:^|\D)(0?[1-9]|1[0-2])[.\-/](20\d{2}|\d{2})(?:\D|$)/);if(numeric){let y=+numeric[2];if(y<100)y+=2000;return new Date(y,+numeric[1]-1,1)}const d=new Date(s);return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),1)}
+  function sheetRows(name){return XLSX.utils.sheet_to_json(workbook.Sheets[name],{header:1,raw:true,defval:null,cellDates:true})}
+  function scoreHeader(row){return row.reduce((n,v)=>n+(Object.values(aliases).some(a=>a.includes(norm(v)))?1:0),0)}
+  function findHeader(rows){let best={row:0,score:-1};rows.slice(0,25).forEach((r,i)=>{const s=scoreHeader(r||[]);if(s>best.score)best={row:i,score:s}});return best}
+  function timelineCandidate(rows){let best={monthRow:2,yearRow:1,score:0,dates:{}};for(let mr=0;mr<Math.min(rows.length,18);mr++){for(let yr=Math.max(0,mr-2);yr<=mr;yr++){let year=null,score=0,dates={};const max=Math.max((rows[mr]||[]).length,(rows[yr]||[]).length);for(let c=0;c<max;c++){const y=String((rows[yr]||[])[c]??'').match(/20\d{2}/);if(y)year=+y[0];const key=norm((rows[mr]||[])[c]).slice(0,3);if(year&&monthMap[key]!==undefined){dates[c]=new Date(year,monthMap[key],1);score++}}if(score>best.score)best={monthRow:mr,yearRow:yr,score,dates}}}return best}
+  function colFor(headers,key){const a=aliases[key];let i=headers.findIndex(h=>a.includes(norm(h)));if(i<0)i=headers.findIndex(h=>a.some(x=>norm(h).includes(x)));return i}
+  function detect(name){const rows=sheetRows(name),h=findHeader(rows),tl=timelineCandidate(rows);const format=tl.score>=4?'timeline':'table';const headerRow=format==='timeline'?(h.row<=tl.monthRow?h.row:tl.yearRow):h.row;const headers=(rows[headerRow]||[]).map((v,i)=>String(v??`Columna ${i+1}`).trim()||`Columna ${i+1}`);const map={};Object.keys(aliases).forEach(k=>map[k]=colFor(headers,k));if(format==='table'){const preferredStart=headers.findIndex(v=>{const n=norm(v);return n.includes('inicio')&&(n.includes('reprogram')||n.includes('actual')||n.includes('real'))}),preferredDuration=headers.findIndex(v=>{const n=norm(v);return n.includes('duracion')&&(n.includes('reprogram')||n.includes('actual'))});if(preferredStart>=0)map.start=preferredStart;if(preferredDuration>=0)map.duration=preferredDuration}else{const firstDateCol=Math.min(...Object.keys(tl.dates).map(Number));if(map.number<0)map.number=0;if(map.name<0)map.name=1;if(map.commune<0)map.commune=2;if(map.homes<0)map.homes=3;if(map.type<0)map.type=4;if(map.start<0)map.start=5;if(map.duration<0)map.duration=Math.max(0,firstDateCol-1)}return{name,rows,format,headerRow,monthRow:tl.monthRow,yearRow:tl.yearRow,timelineDates:tl.dates,headers,map}}
+  function columnOptions(selected,optional=true){let s=optional?'<option value="-1">No usar</option>':'';detected.headers.forEach((h,i)=>s+=`<option value="${i}" ${i===selected?'selected':''}>${esc(h)} · ${String.fromCharCode(65+i%26)}</option>`);return s}
+  function renderMapping(){const defs=[['name','Proyecto *',false],['number','N°',true],['commune','Comuna',true],['homes','Viviendas',true],['type','Tipo',true],['start','Inicio obra',true],['duration','Duración',true],['cpi','CPI',true],['pat','PAT',true],['rap','RAP',true],['rmo','RMO',true]];$('#mapping').innerHTML=defs.map(([k,l,o])=>`<div class="field"><label>${l}</label><select data-map="${k}">${columnOptions(detected.map[k],o)}</select></div>`).join('')}
+  function populateSetup(){const names=workbook.SheetNames;$('#sheet').innerHTML=names.map(n=>`<option ${n===detected.name?'selected':''}>${esc(n)}</option>`).join('');$('#format').value=detected.format;$('#headerRow').value=detected.headerRow+1;$('#monthRow').value=detected.monthRow+1;$('#fileInfo').textContent=`${fileName} · ${names.length} hoja${names.length===1?'':'s'}`;renderMapping();$('#setup').classList.remove('hidden');$('#drop').classList.add('hidden')}
+  function syncSetup(){detected.format=$('#format').value==='auto'?detect(detected.name).format:$('#format').value;detected.headerRow=Math.max(0,+$('#headerRow').value-1);detected.monthRow=Math.max(0,+$('#monthRow').value-1);document.querySelectorAll('[data-map]').forEach(el=>detected.map[el.dataset.map]=+el.value)}
+  function timelineDates(rows,mr){let year=null,dates={};for(let c=0;c<Math.max(...rows.map(r=>(r||[]).length),0);c++){for(let r=Math.max(0,mr-2);r<=mr;r++){const y=String((rows[r]||[])[c]??'').match(/20\d{2}/);if(y)year=+y[0]}const key=norm((rows[mr]||[])[c]).slice(0,3);if(year&&monthMap[key]!==undefined)dates[c]=new Date(year,monthMap[key],1)}return dates}
+  function startFromRow(row,d){const candidates=[d.map.start,...d.headers.map((h,i)=>norm(h).includes('inicio')?i:-1)].filter((v,i,a)=>v>=0&&a.indexOf(v)===i);for(const c of candidates){const date=toDate(row[c]);if(date)return date}return null}
+  function timelineData(row,dates,d){let start=startFromRow(row,d),rmo=null,chain=[],others=[];Object.keys(dates).forEach(c=>{const raw=String(row[c]??'').trim();if(!raw)return;const token=norm(raw).toUpperCase();if(['CPI','PAT','RAP'].includes(token))chain.push({token,date:cloneDate(dates[c])});else if(token==='RMO'||token==='FIN'||token==='CIERRE'||['■','▪','◆'].includes(raw))rmo=cloneDate(dates[c]);else if(['>','▶','►'].includes(raw)||token==='INICIO'||token.startsWith('INICIO OBRA'))start=cloneDate(dates[c]);else others.push({token:raw,date:cloneDate(dates[c])})});chain.sort((a,b)=>a.date-b.date);return{start,rmo,chain,others}}
+  function tableData(row,d){const chain=[];['cpi','pat','rap'].forEach(k=>{const dt=toDate(d.map[k]>=0?row[d.map[k]]:null);if(dt)chain.push({token:k.toUpperCase(),date:dt})});chain.sort((a,b)=>a.date-b.date);const originalCol=d.headers.findIndex(v=>norm(v).includes('inicio original')),originalDurationCol=d.headers.findIndex(v=>norm(v).includes('duracion original'));return{start:startFromRow(row,d),originalStart:toDate(originalCol>=0?row[originalCol]:null),originalDuration:parseInt(originalDurationCol>=0?row[originalDurationCol]:null,10),rmo:toDate(d.map.rmo>=0?row[d.map.rmo]:null),chain,others:[]}}
+  function parse(){
+    syncSetup();
+    const d=detected,rows=d.rows,issues=[],out=[];
+    const startRow=(d.format==='timeline'?Math.max(d.headerRow,d.monthRow):d.headerRow)+1;
+    const dates=d.format==='timeline'?timelineDates(rows,d.monthRow):{};
+    for(let r=startRow;r<rows.length;r++){
+      const sourceRow=r;
+      const row=rows[r]||[];
+      const name=String(row[d.map.name]??'').replace(/\s+/g,' ').trim();
+      const data=d.format==='timeline'?timelineData(row,dates,d):tableData(row,d);
+      const hasProjectMeta=(d.map.number>=0&&String(row[d.map.number]??'').trim())||(d.map.commune>=0&&String(row[d.map.commune]??'').trim())||(d.map.homes>=0&&Number(row[d.map.homes])>0)||(d.map.type>=0&&String(row[d.map.type]??'').trim());
+      if(name&&!hasProjectMeta&&!data.start&&!data.rmo&&!data.chain.length)continue;
+      if(!name){
+        const p=out.at(-1);
+        const isContinuation=d.format==='timeline'&&p&&(data.start||data.rmo||data.chain.length);
+        if(isContinuation){
+          if(data.chain.length)p.chain=data.chain;
+          if(data.start){p.start=cloneDate(data.start);p.startOriginal=cloneDate(data.start)}
+          if(data.rmo&&p.start){p.duration=Math.max(1,diffMonths(p.start,data.rmo)+1);p.rmo=cloneDate(data.rmo)}
+          else if(p.start)p.rmo=addMonths(p.start,p.duration-1);
+          p.others.push(...data.others);
+          const last=p.chain.at(-1);p.lag=last?diffMonths(last.date,p.start):0;
+        }
+        continue;
+      }
+      let duration=parseInt(d.map.duration>=0?row[d.map.duration]:null,10);
+      let {start,rmo,chain,others,originalStart,originalDuration}=data;
+      if(d.format==='timeline'&&r+1<rows.length&&!String((rows[r+1]||[])[d.map.name]??'').trim()){
+        const next=timelineData(rows[r+1]||[],dates,d);
+        if(next.start||next.rmo||next.chain.length){
+          if(next.start)start=next.start;
+          if(next.rmo)rmo=next.rmo;
+          if(next.chain.length)chain=next.chain;
+          others.push(...next.others);
+          r++;
+        }
+      }
+      const hasDuration=Number.isFinite(duration)&&duration>0;
+      if(!start&&rmo&&hasDuration)start=addMonths(rmo,-duration+1);
+      if(start&&rmo&&(!hasDuration||d.format==='timeline'))duration=diffMonths(start,rmo)+1;
+      if(!duration||duration<1)duration=12;
+      if(!start&&chain.length){start=addMonths(chain.at(-1).date,1);issues.push(`${name}: no tenía un inicio legible; se asumió un mes después del último hito.`)}
+      if(!start){issues.push(`${name}: omitido porque no se encontró una fecha ni un marcador de inicio.`);continue}
+      if(d.format==='table'||!rmo)rmo=addMonths(start,duration-1);
+      const last=chain.at(-1),lag=last?diffMonths(last.date,start):0;
+      out.push({id:`${sourceRow}-${name}`,row:sourceRow+1,n:d.map.number>=0?row[d.map.number]:'',name,commune:d.map.commune>=0?row[d.map.commune]:'',homes:Number(d.map.homes>=0?row[d.map.homes]:0)||0,type:String(d.map.type>=0?row[d.map.type]:'Otro')||'Otro',duration,durationOriginal:Number.isFinite(originalDuration)&&originalDuration>0?originalDuration:duration,chain,others,startOriginal:cloneDate(originalStart||start),start:cloneDate(start),lag,rmo:cloneDate(rmo)});
+    }
+    return{out,issues};
+  }
+  function deepCopy(list){return list.map(p=>({...p,chain:p.chain.map(c=>({...c,date:cloneDate(c.date)})),others:p.others.map(o=>({...o,date:cloneDate(o.date)})),startOriginal:cloneDate(p.startOriginal),start:cloneDate(p.start),rmo:cloneDate(p.rmo)}))}
+  function recompute(p){if(p.chain.length)p.start=addMonths(p.chain.at(-1).date,p.lag);p.rmo=addMonths(p.start,p.duration-1)}
+  function shift(p,index,delta){if($('#cascade').checked){for(let i=index;i<p.chain.length;i++)p.chain[i].date=addMonths(p.chain[i].date,delta)}else p.chain[index].date=addMonths(p.chain[index].date,delta);p.chain.sort((a,b)=>a.date-b.date);recompute(p)}
+  function shiftStart(p,delta){p.start=addMonths(p.start,delta);p.rmo=addMonths(p.start,p.duration-1);if(p.chain.length)p.lag=diffMonths(p.chain.at(-1).date,p.start)}
+  function shiftRmo(p,delta){const candidate=addMonths(p.rmo,delta);p.rmo=candidate<p.start?cloneDate(p.start):candidate;p.duration=diffMonths(p.start,p.rmo)+1}
+  function setDuration(p,value){p.duration=Math.max(1,Math.min(240,parseInt(value,10)||1));p.rmo=addMonths(p.start,p.duration-1)}
+  function isChanged(p){return diffMonths(p.startOriginal,p.start)!==0||p.duration!==(p.durationOriginal||p.duration)}
+  function monthInputValue(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+  function monthInputDate(value){const m=String(value||'').match(/^(20\d{2})-(0[1-9]|1[0-2])$/);return m?new Date(+m[1],+m[2]-1,1):null}
+  function intToRoman(value){let n=Math.max(1,parseInt(value,10)||1),out='';for(const [v,s] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){out+=s;n-=v}return out}
+  function romanToInt(value){const s=String(value??'').trim().toUpperCase();if(!s||!/^[IVXLCDM]+$/.test(s))return null;const vals={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};let total=0;for(let i=0;i<s.length;i++)total+=vals[s[i]]<(vals[s[i+1]]||0)?-vals[s[i]]:vals[s[i]];return intToRoman(total)===s?total:null}
+  function nextProjectNumber(style){if(style==='roman'){const values=projects.map(p=>romanToInt(p.n)).filter(Number.isFinite);return intToRoman((values.length?Math.max(...values):0)+1)}const values=projects.map(p=>String(p.n??'').trim()).filter(v=>/^\d+$/.test(v)).map(Number);return (values.length?Math.max(...values):0)+1}
+  function projectInsertIndex(style){if(style==='integer'){let last=-1;projects.forEach((p,i)=>{if(/^\d+$/.test(String(p.n??'').trim()))last=i});if(last>=0)return last+1;const firstRoman=projects.findIndex(p=>romanToInt(p.n)!==null);return firstRoman>=0?firstRoman:projects.length}let last=-1;projects.forEach((p,i)=>{if(romanToInt(p.n)!==null)last=i});if(last>=0)return last+1;let lastInteger=-1;projects.forEach((p,i)=>{if(/^\d+$/.test(String(p.n??'').trim()))lastInteger=i});return lastInteger>=0?lastInteger+1:projects.length}
+  function updateNumberPreview(){$('#newNumberPreview').value=nextProjectNumber($('#newNumbering').value)}
+  function syncNewEnd(){const start=monthInputDate($('#newStart').value),duration=Math.max(1,parseInt($('#newDuration').value,10)||1);if(start)$('#newEnd').value=monthInputValue(addMonths(start,duration-1));$('#projectError').textContent=''}
+  function syncNewDuration(){const start=monthInputDate($('#newStart').value),end=monthInputDate($('#newEnd').value);if(!start||!end)return;if(end<start){$('#projectError').textContent='La fecha de término no puede ser anterior al inicio.';return}$('#newDuration').value=diffMonths(start,end)+1;$('#projectError').textContent=''}
+  function openProjectModal(){const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),1);$('#projectForm').reset();$('#newDuration').value=12;$('#newStart').value=monthInputValue(start);$('#newEnd').value=monthInputValue(addMonths(start,11));const activeType=$('#typeFilter').value;if([...$('#newType').options].some(o=>o.value===activeType))$('#newType').value=activeType;updateNumberPreview();$('#projectError').textContent='';$('#projectModal').classList.remove('hidden');setTimeout(()=>$('#newName').focus(),0)}
+  function closeProjectModal(){$('#projectModal').classList.add('hidden')}
+  function addManualProject(){
+    const name=$('#newName').value.replace(/\s+/g,' ').trim(),commune=$('#newCommune').value.replace(/\s+/g,' ').trim(),homes=Math.max(0,parseInt($('#newHomes').value,10)||0),type=$('#newType').value,start=monthInputDate($('#newStart').value),end=monthInputDate($('#newEnd').value);
+    if(!name||!commune||!start||!end){$('#projectError').textContent='Completa todos los campos obligatorios.';return false}
+    if(end<start){$('#projectError').textContent='La fecha de término no puede ser anterior al inicio.';return false}
+    const numberingStyle=$('#newNumbering').value,duration=diffMonths(start,end)+1,nextNumber=nextProjectNumber(numberingStyle);
+    const p={id:`manual-${Date.now()}`,row:null,n:nextNumber,name,commune,homes,type,duration,durationOriginal:duration,chain:[],others:[],startOriginal:cloneDate(start),start:cloneDate(start),lag:0,rmo:cloneDate(end)};
+    const insertAt=projectInsertIndex(numberingStyle);projects.splice(insertAt,0,p);originals.splice(insertAt,0,deepCopy([p])[0]);$('#typeFilter').value='';$('#search').value='';$('#changedOnly').checked=false;selected=null;render();closeProjectModal();toast(`${name} fue agregado como ${nextNumber} en su sección.`);return true;
+  }
+  function filtered(){const q=norm($('#search').value),type=$('#typeFilter').value,changed=$('#changedOnly').checked;return projects.filter(p=>(!q||norm(`${p.name} ${p.commune} ${p.n}`).includes(q))&&(!type||p.type===type)&&(!changed||isChanged(p)))}
+  function range(list){let ds=[];list.forEach(p=>ds.push(p.start,p.rmo,...p.chain.map(x=>x.date),...p.others.map(x=>x.date)));if(!ds.length){const n=new Date();ds=[n,addMonths(n,12)]}let min=new Date(Math.min(...ds)),max=new Date(Math.max(...ds));min=addMonths(min,-1);max=addMonths(max,1);const months=[];for(let d=cloneDate(min);d<=max;d=addMonths(d,1))months.push(cloneDate(d));return months}
+  function typeClass(t){const n=norm(t);return n.includes('49')?'ds49':n.includes('19')?'ds19':'inm'}
+  function render(){renderKpis();renderFilters();renderGantt();renderDetails()}
+  function renderKpis(){const type=$('#typeFilter').value,scope=type?projects.filter(p=>p.type===type):projects,changed=scope.filter(isChanged),homes=scope.reduce((a,p)=>a+p.homes,0),today=new Date(new Date().getFullYear(),new Date().getMonth(),1),upcoming=scope.map(p=>p.start).filter(d=>d>=today).sort((a,b)=>a-b)[0]||null,latest=scope.length?new Date(Math.max(...scope.map(p=>p.rmo))):null,suffix=type?` · ${type}`:'';$('#kpis').innerHTML=[[scope.length,`Proyectos en cartera${suffix}`],[homes.toLocaleString('es-CL'),`Viviendas totales${suffix}`],[fmt(upcoming),`Próximo inicio${suffix}`],[changed.length,`Reprogramados${suffix}`],[fmt(latest),`Último cierre RMO${suffix}`]].map(x=>`<div class="kpi"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')}
+  function renderFilters(){const current=$('#typeFilter').value,types=[...new Set(projects.map(p=>p.type))].sort();$('#typeFilter').innerHTML='<option value="">Todos los tipos</option>'+types.map(t=>`<option ${t===current?'selected':''}>${esc(t)}</option>`).join('')}
+  function renderGantt(){const list=filtered();$('#visibleCount').textContent=`${list.length} de ${projects.length} proyectos visibles`;if(!list.length){$('#gantt').innerHTML='<div class="empty">No hay proyectos que coincidan con los filtros.</div>';return}const months=range(list),cols=`var(--label) repeat(${months.length}, ${monthWidth}px)`;let html=`<div class="gantt" id="ganttGrid" style="grid-template-columns:${cols};--month:${monthWidth}px"><div class="label head">Proyecto</div>`;months.forEach(m=>html+=`<div class="month ${m.getMonth()===0?'year':''}">${MONTHS[m.getMonth()]}${m.getMonth()===0?`<strong>${m.getFullYear()}</strong>`:''}</div>`);list.forEach(p=>{html+=`<div class="label" title="${esc(p.name)}"><b>${p.n!==''?esc(p.n)+' · ':''}${esc(p.name)}</b><small>${esc(p.commune)} · ${p.homes.toLocaleString('es-CL')} viv · ${esc(p.type)} · ${p.duration}m</small></div>`;months.forEach((m,i)=>html+=`<div class="cell ${m.getMonth()===0?'year':''}" data-id="${esc(p.id)}" data-ci="${i}"></div>`)});html+='</div>';$('#gantt').innerHTML=html;requestAnimationFrame(()=>paint(list,months))}
+  function paint(list,months){
+    const grid=$('#ganttGrid');if(!grid)return;
+    const label=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--label'))||280;
+    list.forEach(p=>{
+      const cells=[...grid.querySelectorAll(`.cell[data-id="${CSS.escape(p.id)}"]`)];if(!cells.length)return;
+      const y=cells[0].offsetTop,si=diffMonths(months[0],p.start),ri=diffMonths(months[0],p.rmo);
+      const add=(cls,left,top,w,title,data)=>{const e=document.createElement(data?'button':'div');e.className=cls;e.style.left=`${left}px`;e.style.top=`${top}px`;if(w)e.style.width=`${w}px`;if(title)e.title=title;if(data)Object.assign(e.dataset,data);grid.appendChild(e);return e};
+      add(`bar ${typeClass(p.type)}`,label+si*monthWidth,y+16,Math.max((ri-si+1)*monthWidth,6));
+      const startActive=selected&&selected.id===p.id&&selected.start;
+      const start=add(`startHandle ${startActive?'active':''}`,label+si*monthWidth,y+7,null,`Inicio de obra · ${fmt(p.start)} · arrastra para mover`,{id:p.id,start:'1'});start.setAttribute('aria-label',start.title);
+      if(startActive){const n=add('nudge',label+si*monthWidth,y-18);n.innerHTML=`<button data-nudge="-1" data-id="${esc(p.id)}" data-start="1" aria-label="Mover inicio un mes atrás">‹</button><button data-nudge="1" data-id="${esc(p.id)}" data-start="1" aria-label="Mover inicio un mes adelante">›</button>`}
+      const rmoX=label+(ri+1)*monthWidth,rmoActive=selected&&selected.id===p.id&&selected.rmo;
+      const rmo=add(`rmoHandle ${rmoActive?'active':''}`,rmoX,y+7,null,`Término RMO · ${fmt(p.rmo)} · ${p.duration} meses · arrastra para mover`,{id:p.id,rmo:'1'});rmo.setAttribute('aria-label',rmo.title);
+      if(rmoActive){const n=add('nudge',rmoX,y-18);n.innerHTML=`<button data-nudge="-1" data-id="${esc(p.id)}" data-rmo="1" aria-label="Acortar un mes">‹</button><button data-nudge="1" data-id="${esc(p.id)}" data-rmo="1" aria-label="Extender un mes">›</button>`}
+      p.others.forEach(o=>{const ci=diffMonths(months[0],o.date);add('milestone other',label+ci*monthWidth+monthWidth/2,y+7,null,o.token)});
+      p.chain.forEach((c,i)=>{const ci=diffMonths(months[0],c.date),active=selected&&selected.id===p.id&&!selected.start&&!selected.rmo&&selected.i===i;const e=add(`milestone ${c.token.toLowerCase()} ${active?'active':''}`,label+ci*monthWidth+monthWidth/2,y+7,null,`${c.token} · ${fmt(c.date)} · arrastra para mover`,{id:p.id,i});e.setAttribute('aria-label',e.title);if(active){const n=add('nudge',label+ci*monthWidth+monthWidth/2,y-18);n.innerHTML=`<button data-nudge="-1" data-id="${esc(p.id)}" data-i="${i}" aria-label="Mover un mes atrás">‹</button><button data-nudge="1" data-id="${esc(p.id)}" data-i="${i}" aria-label="Mover un mes adelante">›</button>`}});
+    });
+    attachMarkerEvents();
+  }
+  function attachMarkerEvents(){
+    document.querySelectorAll('.milestone:not(.other),.startHandle,.rmoHandle').forEach(el=>{el.addEventListener('pointerdown',e=>{
+      e.preventDefault();el.setPointerCapture(e.pointerId);
+      const x=e.clientX,id=el.dataset.id,isStart=el.dataset.start==='1',isRmo=el.dataset.rmo==='1',i=isStart||isRmo?null:+el.dataset.i;
+      selected=isStart?{id,start:true}:isRmo?{id,rmo:true}:{id,i};let moved=false;
+      const move=ev=>{if(Math.abs(ev.clientX-x)>4)moved=true};
+      const up=ev=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);const delta=Math.round((ev.clientX-x)/monthWidth);if(delta){const p=projects.find(v=>v.id===id);if(isStart)shiftStart(p,delta);else if(isRmo)shiftRmo(p,delta);else shift(p,i,delta);selected=null;render();toast(`${isStart?'Inicio de obra':isRmo?'Término RMO':'Hito'} desplazado ${delta>0?'+':''}${delta} mes${Math.abs(delta)===1?'':'es'}.`)}else if(!moved)renderGantt()};
+      el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);
+    })});
+    document.querySelectorAll('[data-nudge]').forEach(b=>b.onclick=e=>{e.stopPropagation();const p=projects.find(x=>x.id===b.dataset.id);if(b.dataset.start==='1')shiftStart(p,+b.dataset.nudge);else if(b.dataset.rmo==='1')shiftRmo(p,+b.dataset.nudge);else shift(p,+b.dataset.i,+b.dataset.nudge);selected=null;render()});
+  }
+  function renderDetails(){
+    const list=filtered();
+    $('#details').innerHTML=`<table class="detail"><thead><tr><th>Proyecto</th><th>Comuna</th><th>Cadena de hitos</th><th>Inicio original</th><th>Inicio actual</th><th>Duración</th><th>RMO</th><th>Cambio</th></tr></thead><tbody>${list.map(p=>{const startDelta=diffMonths(p.startOriginal,p.start),durationDelta=p.duration-(p.durationOriginal||p.duration),chain=p.chain.length?p.chain.map(c=>`${c.token} ${fmt(c.date)}`).join(' → '):'Sin hitos previos',changes=[];if(startDelta)changes.push(`Inicio ${startDelta>0?'+':''}${startDelta}m`);if(durationDelta)changes.push(`Duración ${durationDelta>0?'+':''}${durationDelta}m`);return`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.commune)}</td><td>${esc(chain)}</td><td>${fmt(p.startOriginal)}</td><td>${fmt(p.start)}</td><td><input class="durationInput" type="number" min="1" max="240" value="${p.duration}" data-duration="${esc(p.id)}" aria-label="Duración en meses de ${esc(p.name)}"> meses</td><td>${fmt(p.rmo)}</td><td><span class="badge ${changes.length?'changed':'ok'}">${changes.length?esc(changes.join(' · ')):'Sin cambios'}</span></td></tr>`}).join('')}</tbody></table>`;
+    document.querySelectorAll('[data-duration]').forEach(input=>input.onchange=()=>{const p=projects.find(x=>x.id===input.dataset.duration);if(!p)return;setDuration(p,input.value);selected=null;render();toast(`Duración de ${p.name}: ${p.duration} meses.`)});
+  }
+  function build(){const parsed=parse();if(!parsed.out.length){toast('No se encontraron proyectos válidos. Revisa el mapeo.');return}projects=parsed.out;originals=deepCopy(projects);$('#typeFilter').value='';$('#workspace').classList.remove('hidden');$('#setup').classList.add('hidden');$('#viewTitle').textContent=`Carta Gantt Gerencia de Proyectos · ${fileName}`;render();$('#workspace').scrollIntoView({behavior:'smooth'});if(parsed.issues.length){$('#issues').innerHTML=parsed.issues.slice(0,20).map(x=>`<li>${esc(x)}</li>`).join('');$('#issuesModal').classList.remove('hidden')}}
+  function exportRows(){return projects.map(p=>{const o={'N°':p.n,'Proyecto':p.name,'Comuna':p.commune,'Viviendas':p.homes,'Tipo':p.type,'Duración original (meses)':p.durationOriginal||p.duration,'Duración reprogramada (meses)':p.duration,'Inicio original':iso(p.startOriginal),'Inicio reprogramado':iso(p.start),'RMO reprogramado':iso(p.rmo),'Variación inicio (meses)':diffMonths(p.startOriginal,p.start),'Variación duración (meses)':p.duration-(p.durationOriginal||p.duration)};p.chain.forEach(c=>o[c.token]=iso(c.date));return o})}
+  function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+  function exportCsv(){const ws=XLSX.utils.json_to_sheet(exportRows()),csv=XLSX.utils.sheet_to_csv(ws,{FS:';'});saveBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),'carta-gantt-reprogramada.csv')}
+  function exportXlsx(){const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(exportRows());XLSX.utils.book_append_sheet(wb,ws,'Plan reprogramado');XLSX.writeFile(wb,'carta-gantt-reprogramada.xlsx',{compression:true})}
+  function exportPdf(){
+    if(!window.jspdf?.jsPDF){toast('No se encontró el módulo local de PDF.');return}
+    const list=filtered();
+    if(!list.length){toast('No hay proyectos visibles para exportar.');return}
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a3',compress:true});
+    const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
+    const margin=12,labelW=70,timelineW=pageW-margin*2-labelW;
+    const months=range(list),monthW=timelineW/months.length,rowH=7.4,headY=43,startY=51,bottom=pageH-13,capacity=Math.floor((bottom-startY)/7.4),pageCount=Math.ceil(list.length/capacity),rowsPerPage=Math.ceil(list.length/pageCount);
+    const type=$('#typeFilter').value||'Todos los tipos';
+    const homes=list.reduce((a,p)=>a+p.homes,0),changed=list.filter(isChanged).length;
+    const colors={navy:[10,49,80],blue:[40,117,165],ds19:[82,111,158],green:[57,113,100],orange:[210,100,53],gold:[209,163,58],grid:[218,232,242],paper:[249,252,255],muted:[82,111,132]};
+    const setFill=c=>doc.setFillColor(...c),setDraw=c=>doc.setDrawColor(...c),setText=c=>doc.setTextColor(...c);
+    const fit=(text,width)=>{let s=String(text??'');while(s.length>4&&doc.getTextWidth(s+'...')>width)s=s.slice(0,-1);return s===String(text??'')?s:s+'...'};
+    function header(page){
+      setFill(colors.navy);doc.rect(0,0,pageW,32,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Carta Gantt Gerencia de Proyectos',margin,14);
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(`${type} | ${list.length} proyectos | ${homes.toLocaleString('es-CL')} viviendas | ${changed} reprogramados`,margin,22);
+      doc.text(`Periodo: ${fmt(months[0])} a ${fmt(months.at(-1))}`,pageW-margin,14,{align:'right'});doc.text(`Página ${page}`,pageW-margin,22,{align:'right'});
+      setText(colors.muted);doc.setFontSize(7.5);doc.text('Barras: ejecución de obra | Círculos: CPI / PAT / RAP | Línea naranja: cierre RMO',margin,38);
+      setFill(colors.navy);doc.rect(margin,headY,labelW,rowH,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.text('PROYECTO',margin+2,headY+4.7);
+      months.forEach((m,i)=>{const x=margin+labelW+i*monthW;setFill(colors.navy);doc.rect(x,headY,monthW,rowH,'F');setDraw([63,92,112]);doc.line(x,headY,x,headY+rowH);setText([235,244,250]);doc.setFontSize(Math.max(4.5,Math.min(6.8,monthW*.8)));doc.text(MONTHS[m.getMonth()].slice(0,3),x+monthW/2,headY+3,{align:'center'});if(m.getMonth()===0){doc.setFont('helvetica','bold');doc.text(String(m.getFullYear()),x+monthW/2,headY+6.1,{align:'center'});doc.setFont('helvetica','normal')}});
+    }
+    function footer(){setText(colors.muted);doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.text('Documento generado localmente. Las fechas corresponden a la simulación visible al momento de exportar.',margin,pageH-5)}
+    let page=1,y=startY,rowOnPage=0;header(page);
+    list.forEach((p,index)=>{
+      if(rowOnPage>=rowsPerPage){footer();doc.addPage('a3','landscape');page++;y=startY;rowOnPage=0;header(page)}
+      const alt=index%2===0?[245,250,253]:[255,255,255];setFill(alt);doc.rect(margin,y,pageW-margin*2,rowH,'F');
+      setDraw(colors.grid);doc.setLineWidth(.15);doc.line(margin,y+rowH,pageW-margin,y+rowH);months.forEach((m,i)=>{const x=margin+labelW+i*monthW;if(m.getMonth()===0){setDraw([163,190,209]);doc.setLineWidth(.35)}else{setDraw(colors.grid);doc.setLineWidth(.12)}doc.line(x,y,x,y+rowH)});
+      setText(colors.navy);doc.setFont('helvetica','bold');doc.setFontSize(6.8);doc.text(fit(`${p.n!==''?p.n+' | ':''}${p.name}`,labelW-4),margin+2,y+3.1);setText(colors.muted);doc.setFont('helvetica','normal');doc.setFontSize(5.4);doc.text(fit(`${p.commune||''} | ${p.homes.toLocaleString('es-CL')} viv | ${p.type} | ${p.duration}m`,labelW-4),margin+2,y+5.9);
+      const si=diffMonths(months[0],p.start),ri=diffMonths(months[0],p.rmo),barX=margin+labelW+si*monthW,barW=(ri-si+1)*monthW;
+      setFill(typeClass(p.type)==='ds49'?colors.blue:typeClass(p.type)==='ds19'?colors.ds19:colors.green);doc.roundedRect(barX,y+2.5,Math.max(barW,.8),2.8,.7,.7,'F');
+      setDraw(colors.navy);doc.setLineWidth(.5);doc.line(barX,y+1.6,barX,y+6.2);const rmoX=margin+labelW+(ri+1)*monthW;setDraw(colors.orange);doc.setLineWidth(.65);doc.line(rmoX,y+1.3,rmoX,y+6.4);
+      p.chain.forEach(c=>{const ci=diffMonths(months[0],c.date),x=margin+labelW+(ci+.5)*monthW,cc=c.token==='CPI'?colors.blue:c.token==='PAT'?colors.gold:colors.orange;setFill(cc);doc.circle(x,y+2,1.15,'F')});
+      y+=rowH;rowOnPage++;
+    });
+    footer();
+    doc.setProperties({title:'Carta Gantt Gerencia de Proyectos',subject:`Planificación ${type}`,author:'Malpo - Gerencia de Proyectos'});
+    doc.save(`carta-gantt-gerencia-proyectos-${norm(type).replace(/ /g,'-')||'cartera'}.pdf`);
+    toast('PDF visual generado correctamente.');
+  }
+  async function load(file){if(!window.XLSX){alert('No se encontró la biblioteca local de Excel. Mantén la carpeta vendor junto al HTML.');return}try{const data=await file.arrayBuffer();workbook=XLSX.read(data,{type:'array',cellDates:true});fileName=file.name;detected=detect(workbook.SheetNames[0]);populateSetup()}catch(err){console.error(err);toast('No se pudo leer el archivo. Verifica que sea Excel o CSV.')}}
+  $('#pick').onclick=e=>{e.stopPropagation();$('#file').click()};$('#replace').onclick=()=>$('#file').click();$('#drop').onclick=()=>$('#file').click();$('#drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};$('#file').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+  $('#drop').ondragover=e=>{e.preventDefault();$('#drop').classList.add('drag')};$('#drop').ondragleave=()=>$('#drop').classList.remove('drag');$('#drop').ondrop=e=>{e.preventDefault();$('#drop').classList.remove('drag');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0])};
+  $('#sheet').onchange=()=>{detected=detect($('#sheet').value);populateSetup()};$('#format').onchange=()=>{detected.format=$('#format').value==='auto'?detect(detected.name).format:$('#format').value};$('#redetect').onclick=()=>{detected=detect($('#sheet').value);populateSetup();toast('Estructura detectada nuevamente.')};$('#build').onclick=build;$('#configure').onclick=()=>{$('#setup').classList.remove('hidden');$('#setup').scrollIntoView({behavior:'smooth'})};
+  $('#addProject').onclick=openProjectModal;$('#cancelProject').onclick=closeProjectModal;$('#projectForm').onsubmit=e=>{e.preventDefault();addManualProject()};$('#newNumbering').onchange=updateNumberPreview;$('#newStart').onchange=syncNewEnd;$('#newDuration').oninput=syncNewEnd;$('#newEnd').onchange=syncNewDuration;$('#projectModal').onclick=e=>{if(e.target===$('#projectModal'))closeProjectModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#projectModal').classList.contains('hidden'))closeProjectModal()});
+  ['search','typeFilter','changedOnly'].forEach(id=>$('#'+id).addEventListener(id==='search'?'input':'change',()=>{if(id==='typeFilter')renderKpis();renderGantt();renderDetails()}));$('#zoomIn').onclick=()=>{monthWidth=Math.min(68,monthWidth+6);renderGantt()};$('#zoomOut').onclick=()=>{monthWidth=Math.max(28,monthWidth-6);renderGantt()};$('#reset').onclick=()=>{projects=deepCopy(originals);selected=null;render();toast('Fechas originales restauradas.')};$('#exportCsv').onclick=exportCsv;$('#exportXlsx').onclick=exportXlsx;$('#exportPdf').onclick=exportPdf;$('#closeIssues').onclick=()=>$('#issuesModal').classList.add('hidden');
+})();
+</script>
+</body>
+</html>
