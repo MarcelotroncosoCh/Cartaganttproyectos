@@ -219,14 +219,15 @@
     const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
     const margin=12,labelW=70,timelineW=pageW-margin*2-labelW;
     const months=range(list),monthW=timelineW/months.length,rowH=7.4,headY=43,startY=51,bottom=pageH-13,capacity=Math.floor((bottom-startY)/7.4),pageCount=Math.ceil(list.length/capacity),rowsPerPage=Math.ceil(list.length/pageCount);
-    const type=$('#typeFilter').value||'Todos los tipos',startYear=$('#startYearFilter').value,filterLabel=`${type}${startYear?` · inicio ${startYear}`:' · todos los años'}`;
+    const type=$('#typeFilter').value||'Todos los tipos',startYear=$('#startYearFilter').value,filterLabel=`${type}${startYear?` · inicio ${startYear}`:' · todos los años'}`,pdfSubtitle=!startYear?'':startYear==='2026'?'Proyectos con posibilidad de iniciar sin restricciones mayores':'Proyectos posibles y postulables, sujetos a selección de SERVIU';
     const homes=list.reduce((a,p)=>a+p.homes,0),changed=list.filter(isChanged).length;
     const colors={navy:[10,49,80],blue:[40,117,165],ds19:[82,111,158],green:[57,113,100],orange:[210,100,53],gold:[209,163,58],grid:[218,232,242],paper:[249,252,255],muted:[82,111,132]};
     const setFill=c=>doc.setFillColor(...c),setDraw=c=>doc.setDrawColor(...c),setText=c=>doc.setTextColor(...c);
     const fit=(text,width)=>{let s=String(text??'');while(s.length>4&&doc.getTextWidth(s+'...')>width)s=s.slice(0,-1);return s===String(text??'')?s:s+'...'};
     function header(page){
-      setFill(colors.navy);doc.rect(0,0,pageW,32,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Carta Gantt Gerencia de Proyectos',margin,14);
-      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(`${filterLabel} | ${list.length} proyectos | ${homes.toLocaleString('es-CL')} viviendas | ${changed} reprogramados`,margin,22);
+      setFill(colors.navy);doc.rect(0,0,pageW,32,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('Carta Gantt Gerencia de Proyectos',margin,12.5);
+      if(pdfSubtitle){setText(colors.gold);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(pdfSubtitle,margin,19)}
+      setText([255,255,255]);doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(`${filterLabel} | ${list.length} proyectos | ${homes.toLocaleString('es-CL')} viviendas | ${changed} reprogramados`,margin,pdfSubtitle?26:22);
       doc.text(`Periodo: ${fmt(months[0])} a ${fmt(months.at(-1))}`,pageW-margin,14,{align:'right'});doc.text(`Página ${page}`,pageW-margin,22,{align:'right'});
       setText(colors.muted);doc.setFontSize(7.5);doc.text('Barras: ejecución de obra | Círculos: CPI / PAT / RAP | Línea naranja: cierre RMO',margin,38);
       setFill(colors.navy);doc.rect(margin,headY,labelW,rowH,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.text('PROYECTO',margin+2,headY+4.7);
