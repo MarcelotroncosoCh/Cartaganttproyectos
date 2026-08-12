@@ -246,7 +246,13 @@
       setText(colors.gold);doc.setFont('helvetica','bold');doc.setFontSize(8.8);doc.text(group.subtitle,margin,19);
       setText([255,255,255]);doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(`${filterLabel} | ${group.projects.length} proyectos | ${homes.toLocaleString('es-CL')} viviendas | ${changed} reprogramados`,margin,26);
       doc.text(`Periodo: ${fmt(months[0])} a ${fmt(months.at(-1))}`,pageW-margin,14,{align:'right'});doc.text(`Página ${page}`,pageW-margin,22,{align:'right'});
-      setText(colors.muted);doc.setFontSize(7.5);doc.text('Barras: ejecución de obra | Círculos: CPI / PAT / RAP | Línea naranja: cierre RMO',margin,38);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);setText(colors.muted);let legendX=margin;
+      const legendText=label=>{doc.text(label,legendX+7,38);legendX+=7+doc.getTextWidth(label)+8};
+      setFill(colors.blue);doc.roundedRect(legendX,35.7,5,2.4,.6,.6,'F');legendText('Ejecución de obra');
+      setFill(colors.blue);doc.circle(legendX+2.5,37,1.25,'F');legendText('CPI');
+      setFill(colors.gold);doc.circle(legendX+2.5,37,1.25,'F');legendText('PAT');
+      setFill(colors.orange);doc.circle(legendX+2.5,37,1.25,'F');legendText('RAP');
+      setDraw(colors.orange);doc.setLineWidth(.8);doc.line(legendX+2.5,35.4,legendX+2.5,38.6);legendText('Cierre RMO');
       setFill(colors.navy);doc.rect(margin,headY,labelW,rowH,'F');setText([255,255,255]);doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.text('PROYECTO',margin+2,headY+4.7);
       months.forEach((m,i)=>{const x=margin+labelW+i*monthW;setFill(colors.navy);doc.rect(x,headY,monthW,rowH,'F');setDraw([63,92,112]);doc.line(x,headY,x,headY+rowH);setText([235,244,250]);doc.setFontSize(Math.max(4.5,Math.min(6.8,monthW*.8)));doc.text(MONTHS[m.getMonth()].slice(0,3),x+monthW/2,headY+3,{align:'center'});if(m.getMonth()===0){doc.setFont('helvetica','bold');doc.text(String(m.getFullYear()),x+monthW/2,headY+6.1,{align:'center'});doc.setFont('helvetica','normal')}});
     }
